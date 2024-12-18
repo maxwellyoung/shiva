@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 255, 255, 255;
-  --background-rgb: 17, 17, 17;
+  --foreground-rgb: 17, 17, 17;
+  --background-rgb: 255, 255, 255;
 }
 
 body {
@@ -14,8 +14,8 @@ body {
 }
 
 ::selection {
-  background: white;
-  color: black;
+  background: black;
+  color: white;
 }
 
 /* Custom Scrollbar */
@@ -24,11 +24,11 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #111;
+  background: #fff;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: white;
+  background: #111;
 }
 
 /* Smooth scrolling */
