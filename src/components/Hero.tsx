@@ -7,19 +7,19 @@ import Image from "next/image";
 
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"] });
 
-// Helper function to get random position within center 75%
-function getRandomPosition() {
+// Helper function to get random position
+function getRandomPosition(width: number, height: number) {
   return {
-    x: Math.random() * window.innerWidth * 0.5 - window.innerWidth * 0.25,
-    y: Math.random() * window.innerHeight * 0.5 - window.innerHeight * 0.25,
+    x: Math.random() * width * 0.5 - width * 0.25,
+    y: Math.random() * height * 0.5 - height * 0.25,
   };
 }
 
-// Initial images with random positions
-const images = [
-  { id: 1, src: "/image1.jpg", alt: "Fashion 1", ...getRandomPosition() },
-  { id: 2, src: "/image2.jpg", alt: "Fashion 2", ...getRandomPosition() },
-  { id: 3, src: "/image3.jpg", alt: "Fashion 3", ...getRandomPosition() },
+// Initial images without positions
+const initialImages = [
+  { id: 1, src: "/image1.jpg", alt: "Fashion 1", x: 0, y: 0 },
+  { id: 2, src: "/image2.jpg", alt: "Fashion 2", x: 0, y: 0 },
+  { id: 3, src: "/image3.jpg", alt: "Fashion 3", x: 0, y: 0 },
 ];
 
 interface DragInfo extends PanInfo {
@@ -30,11 +30,30 @@ interface DragInfo extends PanInfo {
 }
 
 const Hero = () => {
-  const [selectedImage, setSelectedImage] = useState<null | (typeof images)[0]>(
-    null
-  );
-  const [imagePositions, setImagePositions] = useState(images);
+  const [selectedImage, setSelectedImage] = useState<
+    null | (typeof initialImages)[0]
+  >(null);
+  const [imagePositions, setImagePositions] = useState(initialImages);
   const constraintsRef = useRef(null);
+
+  // Initialize positions on mount and handle window resize
+  useEffect(() => {
+    const updatePositions = () => {
+      setImagePositions(
+        initialImages.map((img) => ({
+          ...img,
+          ...getRandomPosition(window.innerWidth, window.innerHeight),
+        }))
+      );
+    };
+
+    // Set initial positions
+    updatePositions();
+
+    // Handle resize
+    window.addEventListener("resize", updatePositions);
+    return () => window.removeEventListener("resize", updatePositions);
+  }, []);
 
   // Add useEffect for escape key handling
   useEffect(() => {
@@ -53,21 +72,6 @@ const Hero = () => {
     };
   }, [selectedImage]);
 
-  // Update positions on window resize
-  useEffect(() => {
-    const handleResize = () => {
-      setImagePositions(
-        images.map((img) => ({
-          ...img,
-          ...getRandomPosition(),
-        }))
-      );
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
   const handleDrag = (
     _: MouseEvent | TouchEvent | PointerEvent,
     info: DragInfo,
@@ -85,6 +89,7 @@ const Hero = () => {
   return (
     <>
       <section
+        id="hero"
         ref={constraintsRef}
         className="h-screen flex items-center justify-center relative bg-white overflow-hidden"
       >

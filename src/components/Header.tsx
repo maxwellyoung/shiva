@@ -2,13 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
 import { Space_Grotesk } from "next/font/google";
 
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"] });
 
 const Header = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [pastHero, setPastHero] = useState(false);
 
@@ -22,6 +20,20 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const offset = 80; // Height of the fixed header
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
+    }
+  };
+
   return (
     <header
       className={`fixed w-full z-50 transition-colors duration-500 ${
@@ -30,6 +42,7 @@ const Header = () => {
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
+          {/* Left side */}
           <div className="relative">
             <AnimatePresence mode="wait">
               {!pastHero ? (
@@ -49,11 +62,12 @@ const Header = () => {
               ) : (
                 <motion.span
                   key="name"
-                  className={`${spaceGrotesk.className} text-lg tracking-wide`}
+                  className={`${spaceGrotesk.className} text-lg tracking-wide cursor-pointer`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
+                  onClick={() => scrollToSection("hero")}
                 >
                   SHIVA MIZANI
                 </motion.span>
@@ -61,74 +75,31 @@ const Header = () => {
             </AnimatePresence>
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex space-x-8">
-            <NavLink href="/#work">WORK</NavLink>
-            <NavLink href="/#about">ABOUT</NavLink>
-            <NavLink href="/#contact">CONTACT</NavLink>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden w-8 h-8 flex flex-col justify-center items-center gap-1.5"
-          >
-            <span
-              className={`w-6 h-px bg-black transition-transform ${
-                isOpen ? "rotate-45 translate-y-1.5" : ""
-              }`}
-            />
-            <span
-              className={`w-6 h-px bg-black transition-opacity ${
-                isOpen ? "opacity-0" : ""
-              }`}
-            />
-            <span
-              className={`w-6 h-px bg-black transition-transform ${
-                isOpen ? "-rotate-45 -translate-y-1.5" : ""
-              }`}
-            />
-          </button>
+          {/* Navigation */}
+          <nav className="hidden md:flex space-x-8">
+            <button
+              onClick={() => scrollToSection("gallery")}
+              className="text-sm tracking-widest hover:text-gray-500 transition-colors"
+            >
+              WORK
+            </button>
+            <button
+              onClick={() => scrollToSection("about")}
+              className="text-sm tracking-widest hover:text-gray-500 transition-colors"
+            >
+              ABOUT
+            </button>
+            <button
+              onClick={() => scrollToSection("contact")}
+              className="text-sm tracking-widest hover:text-gray-500 transition-colors"
+            >
+              CONTACT
+            </button>
+          </nav>
         </div>
       </div>
-
-      {/* Mobile Navigation */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.nav
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="absolute top-full left-0 w-full bg-white shadow-lg md:hidden"
-          >
-            <div className="container mx-auto px-4 py-8">
-              <div className="space-y-4">
-                <NavLink href="/#work">WORK</NavLink>
-                <NavLink href="/#about">ABOUT</NavLink>
-                <NavLink href="/#contact">CONTACT</NavLink>
-              </div>
-            </div>
-          </motion.nav>
-        )}
-      </AnimatePresence>
     </header>
   );
 };
-
-interface NavLinkProps {
-  href: string;
-  children: React.ReactNode;
-  onClick?: () => void;
-}
-
-const NavLink = ({ href, children, ...props }: NavLinkProps) => (
-  <Link
-    href={href}
-    className={`${spaceGrotesk.className} block text-lg font-light tracking-wide hover:text-gray-500 transition-colors`}
-    {...props}
-  >
-    {children}
-  </Link>
-);
 
 export default Header;
