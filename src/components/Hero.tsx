@@ -1,117 +1,76 @@
 "use client";
 
-import { motion, AnimatePresence, PanInfo } from "framer-motion";
-import { useRef, useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { useRef } from "react";
 import { Space_Grotesk } from "next/font/google";
 import Image from "next/image";
+import AnimatedGradient from "./AnimatedGradient";
+import VerticalCutReveal from "./VerticalCutReveal";
+import ImageTrail from "./ImageTrail";
 
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"] });
 
-// Helper function to get random position
-function getRandomPosition(width: number, height: number) {
-  return {
-    x: Math.random() * width * 0.5 - width * 0.25,
-    y: Math.random() * height * 0.5 - height * 0.25,
-  };
-}
-
-// Initial images without positions
-const initialImages = [
-  { id: 1, src: "/image1.jpg", alt: "Fashion 1", x: 0, y: 0 },
-  { id: 2, src: "/image2.jpg", alt: "Fashion 2", x: 0, y: 0 },
-  { id: 3, src: "/image3.jpg", alt: "Fashion 3", x: 0, y: 0 },
+const gradientColors = [
+  "rgba(59, 130, 246, 0.5)",
+  "rgba(96, 165, 250, 0.5)",
+  "rgba(147, 197, 253, 0.5)",
+  "rgba(251, 207, 232, 0.5)",
 ];
 
-interface DragInfo extends PanInfo {
-  point: {
-    x: number;
-    y: number;
-  };
-}
+const images = ["/image1.jpg", "/image2.jpg", "/image3.jpg"];
 
 const Hero = () => {
-  const [selectedImage, setSelectedImage] = useState<
-    null | (typeof initialImages)[0]
-  >(null);
-  const [imagePositions, setImagePositions] = useState(initialImages);
-  const constraintsRef = useRef(null);
-
-  // Initialize positions on mount and handle window resize
-  useEffect(() => {
-    const updatePositions = () => {
-      setImagePositions(
-        initialImages.map((img) => ({
-          ...img,
-          ...getRandomPosition(window.innerWidth, window.innerHeight),
-        }))
-      );
-    };
-
-    // Set initial positions
-    updatePositions();
-
-    // Handle resize
-    window.addEventListener("resize", updatePositions);
-    return () => window.removeEventListener("resize", updatePositions);
-  }, []);
-
-  // Add useEffect for escape key handling
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setSelectedImage(null);
-      }
-    };
-
-    if (selectedImage) {
-      window.addEventListener("keydown", handleEscape);
-    }
-
-    return () => {
-      window.removeEventListener("keydown", handleEscape);
-    };
-  }, [selectedImage]);
-
-  const handleDrag = (
-    _: MouseEvent | TouchEvent | PointerEvent,
-    info: DragInfo,
-    id: number
-  ) => {
-    setImagePositions((prev) =>
-      prev.map((img) =>
-        img.id === id
-          ? { ...img, x: img.x + info.offset.x, y: img.y + info.offset.y }
-          : img
-      )
-    );
-  };
+  const containerRef = useRef<HTMLElement>(null);
 
   return (
-    <>
-      <section
-        id="hero"
-        ref={constraintsRef}
-        className="h-screen flex items-center justify-center relative bg-white overflow-hidden"
-      >
-        {/* Main Content - moved to back */}
-        <motion.div className="relative container mx-auto px-4">
+    <section
+      ref={containerRef}
+      id="hero"
+      className="relative min-h-screen flex items-center overflow-hidden"
+    >
+      {/* Background gradient */}
+      <div className="absolute inset-0 z-0">
+        <AnimatedGradient colors={gradientColors} speed={10} blur="medium" />
+      </div>
+
+      {/* Main content */}
+      <div className="relative z-10 w-full">
+        <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="max-w-4xl mx-auto"
+            className="ml-[4%] md:ml-[16.666%]"
           >
-            <h1
-              className={`${spaceGrotesk.className} text-[8vw] md:text-[6vw] font-light leading-none tracking-tighter mb-6`}
+            {/* Instagram handle with subtle animation */}
+            <motion.a
+              href="https://instagram.com/shivamizani"
+              target="_blank"
+              rel="noopener noreferrer"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.2, duration: 0.8 }}
+              className="inline-block mb-8 text-sm tracking-widest hover:text-stone-600 transition-all duration-300 group"
             >
-              <motion.span
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-                className="block"
+              <span className="inline-block mr-2 opacity-60">↗</span>
+              @shivamizani
+            </motion.a>
+
+            <h1
+              className={`${spaceGrotesk.className} text-[8vw] md:text-[6vw] font-light leading-none tracking-tighter mb-8`}
+            >
+              <VerticalCutReveal
+                splitBy="characters"
+                staggerDuration={0.025}
+                staggerFrom="first"
+                transition={{
+                  type: "spring",
+                  stiffness: 200,
+                  damping: 21,
+                }}
               >
-                SHIVA
-              </motion.span>
+                {`SHIVA`}
+              </VerticalCutReveal>
               <motion.span
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -121,90 +80,57 @@ const Hero = () => {
                 MIZANI
               </motion.span>
             </h1>
+
             <motion.div
-              className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-8"
+              className="flex flex-col md:flex-row items-start gap-4 md:gap-12"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6 }}
             >
-              <p className="text-lg md:text-xl font-light tracking-wide">
+              <p className="text-lg md:text-xl font-light tracking-wider text-stone-500">
                 ART DIRECTOR
               </p>
-              <div className="h-px md:h-8 w-12 md:w-px bg-black/20" />
-              <p className="text-lg md:text-xl font-light tracking-wide">
+              <div className="hidden md:block h-px w-12 bg-stone-300 self-center" />
+              <p className="text-lg md:text-xl font-light tracking-wider text-stone-500">
                 FASHION STYLIST
               </p>
             </motion.div>
           </motion.div>
-        </motion.div>
-
-        {/* Draggable Images - moved to front with higher z-index */}
-        <div className="absolute inset-0 z-10 flex items-center justify-center">
-          {imagePositions.map((image) => (
-            <motion.div
-              key={image.id}
-              drag
-              dragMomentum={false}
-              dragElastic={0.1}
-              initial={{ opacity: 0, x: image.x, y: image.y, scale: 0.8 }}
-              animate={{
-                opacity: 1,
-                x: image.x,
-                y: image.y,
-                scale: 1,
-                transition: {
-                  duration: 0.8,
-                  delay: image.id * 0.2,
-                },
-              }}
-              whileDrag={{ scale: 1.1, cursor: "grabbing" }}
-              className="absolute cursor-grab active:cursor-grabbing"
-              onDragEnd={(_, info) => handleDrag(_, info, image.id)}
-              onClick={() => setSelectedImage(image)}
-            >
-              <div className="w-48 h-64 relative">
-                <Image
-                  src={image.src}
-                  alt={image.alt}
-                  fill
-                  className="object-cover rounded-lg shadow-lg"
-                  draggable={false}
-                />
-              </div>
-            </motion.div>
-          ))}
         </div>
-      </section>
+      </div>
 
-      {/* Lightbox */}
-      <AnimatePresence>
-        {selectedImage && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedImage(null)}
-            className="fixed inset-0 bg-white/60 backdrop-blur-sm z-50 flex items-center justify-center"
+      {/* Image Trail */}
+      <ImageTrail
+        containerRef={containerRef}
+        rotationRange={20}
+        interval={150}
+        newOnTop={true}
+        animationSequence={[
+          [
+            { scale: 1, opacity: 0.8 },
+            { duration: 0.4, ease: "easeOut" },
+          ],
+          [
+            { scale: 0, opacity: 0 },
+            { duration: 1.2, ease: "easeIn" },
+          ],
+        ]}
+      >
+        {images.map((src, index) => (
+          <div
+            key={index}
+            className="w-48 h-64 relative rounded-lg overflow-hidden shadow-lg"
           >
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ type: "spring", damping: 20 }}
-              className="relative w-[80vw] h-[80vh]"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Image
-                src={selectedImage.src}
-                alt={selectedImage.alt}
-                fill
-                className="object-contain"
-              />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+            <Image
+              src={src}
+              alt={`Fashion ${index + 1}`}
+              fill
+              className="object-cover"
+            />
+          </div>
+        ))}
+      </ImageTrail>
+    </section>
   );
 };
 

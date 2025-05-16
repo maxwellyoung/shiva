@@ -1,104 +1,80 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 import { Space_Grotesk } from "next/font/google";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"] });
 
 const Header = () => {
-  const [scrolled, setScrolled] = useState(false);
-  const [pastHero, setPastHero] = useState(false);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
+  // Listen for lightbox state and scroll position
   useEffect(() => {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === "childList") {
+          const hasLightbox = document.querySelector('[data-lightbox="true"]');
+          setIsLightboxOpen(!!hasLightbox);
+        }
+      });
+    });
+
     const handleScroll = () => {
       const heroHeight = window.innerHeight;
-      setScrolled(window.scrollY > 50);
-      setPastHero(window.scrollY > heroHeight * 0.5);
+      setIsScrolled(window.scrollY > 0); // Change to any scroll
     };
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      const offset = 80; // Height of the fixed header
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth",
-      });
-    }
-  };
-
   return (
-    <header
-      className={`fixed w-full z-50 transition-colors duration-500 ${
-        scrolled ? "bg-white/80 backdrop-blur-sm" : "bg-transparent"
+    <motion.header
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8 }}
+      className={`fixed top-0 left-0 right-0 transition-all duration-300 ${
+        isLightboxOpen
+          ? "z-30 bg-white/30 backdrop-blur-xl"
+          : isScrolled
+            ? "z-40 bg-white/80 backdrop-blur-md"
+            : "z-40 bg-transparent"
       }`}
     >
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-20">
-          {/* Left side */}
-          <div className="relative">
-            <AnimatePresence mode="wait">
-              {!pastHero ? (
-                <motion.a
-                  key="instagram"
-                  href="https://www.instagram.com/shivamizani"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`${spaceGrotesk.className} text-lg tracking-widest hover:text-gray-500 transition-colors`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  @shivamizani
-                </motion.a>
-              ) : (
-                <motion.span
-                  key="name"
-                  className={`${spaceGrotesk.className} text-lg tracking-wide cursor-pointer`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                  onClick={() => scrollToSection("hero")}
-                >
-                  SHIVA MIZANI
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Navigation */}
-          <nav className="hidden md:flex space-x-8">
-            <button
-              onClick={() => scrollToSection("gallery")}
-              className="text-sm tracking-widest hover:text-gray-500 transition-colors"
-            >
-              WORK
-            </button>
-            <button
-              onClick={() => scrollToSection("about")}
-              className="text-sm tracking-widest hover:text-gray-500 transition-colors"
-            >
-              ABOUT
-            </button>
-            <button
-              onClick={() => scrollToSection("contact")}
-              className="text-sm tracking-widest hover:text-gray-500 transition-colors"
-            >
-              CONTACT
-            </button>
+        <div className="flex justify-between items-center h-20">
+          <Link
+            href="/"
+            className={`${spaceGrotesk.className} text-lg font-light tracking-tight`}
+          >
+            SHIVA MIZANI
+          </Link>
+          <nav className="space-x-8">
+            {["WORK", "ABOUT", "CONTACT"].map((item) => (
+              <Link
+                key={item}
+                href={`#${item.toLowerCase()}`}
+                className="hover:text-stone-600 transition-colors"
+              >
+                {item}
+              </Link>
+            ))}
           </nav>
         </div>
       </div>
-    </header>
+    </motion.header>
   );
 };
 
